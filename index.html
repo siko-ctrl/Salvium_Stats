@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Salvium Dashboard</title>
+    <title>Salvium Stats</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
@@ -15,9 +15,26 @@
         .sidebar {
             background-color: #000000;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .sidebar img {
+            margin-bottom: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000000;
+            padding: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
         }
         .content {
             padding: 20px;
+            width: 100%;
         }
         .card {
             background-color: #4a4a4a;
@@ -36,45 +53,56 @@
     </style>
 </head>
 <body class="flex flex-col md:flex-row">
+    <!-- Sidebar -->
     <div class="sidebar">
-        <img src="Salvium-logo_REV.png" alt="Salvium Logo" class="w-32 md:w-40 mb-4" />
+        <img src="Salvium-logo_REV.png" alt="Salvium Logo" class="w-32 md:w-40" />
     </div>
-    <div class="content flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="card">
-            <p>Current Salvium Price</p>
-            <h2 id="price">Loading...</h2>
+    
+    <!-- Main Content -->
+    <div class="flex flex-col w-full">
+        <!-- Header -->
+        <div class="header">
+            Salvium Stats
         </div>
-        <div class="card">
-            <p>Market Cap</p>
-            <h2 id="marketCap">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Supply</p>
-            <h2 id="supply">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Coins Burnt (last 30 days)</p>
-            <h2 id="burnt">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Block Height</p>
-            <h2 id="blockHeight">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Network Hashrate</p>
-            <h2 id="networkHash">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Total Yield</p>
-            <h2 id="totalYield">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Average Yield Rate</p>
-            <h2 id="averageYieldRate">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Yield Distribution</p>
-            <ul id="yieldDistribution" class="list-disc pl-5">Loading...</ul>
+
+        <!-- Content -->
+        <div class="content grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="card">
+                <p>Current Salvium Price</p>
+                <h2 id="price">Loading...</h2>
+            </div>
+            <div class="card">
+                <p>Market Cap</p>
+                <h2 id="marketCap">Loading...</h2>
+            </div>
+            <div class="card">
+                <p>Supply</p>
+                <h2 id="supply">Loading...</h2>
+            </div>
+            <div class="card">
+                <p>Coins Burnt (last 30 days)</p>
+                <h2 id="burnt">Loading...</h2>
+            </div>
+            <div class="card">
+                <p>Block Height</p>
+                <h2 id="blockHeight">Loading...</h2>
+            </div>
+            <div class="card">
+                <p>Network Hashrate</p>
+                <h2 id="networkHash">Loading...</h2>
+            </div>
+            <div class="card">
+                <p>Total Yield</p>
+                <h2 id="totalYield">Loading...</h2>
+            </div>
+            <div class="card">
+                <p>Average Yield Rate</p>
+                <h2 id="averageYieldRate">Loading...</h2>
+            </div>
+            <div class="card">
+                <p>Yield Distribution</p>
+                <ul id="yieldDistribution" class="list-disc pl-5">Loading...</ul>
+            </div>
         </div>
     </div>
 
@@ -83,8 +111,8 @@
         const liveCoinWatchUrl = "https://api.livecoinwatch.com/coins/single";
         const liveCoinWatchApiKey = "b6807d61-488c-4ee3-a35e-5c08a12d314c";
 
-        let circulatingSupply = 0; // Global variable for supply
-        let price = 0; // Global variable for price
+        let circulatingSupply = 0;
+        let price = 0;
 
         function calculateMarketCap() {
             if (circulatingSupply > 0 && price > 0) {
@@ -131,7 +159,7 @@
                 const rawSupply = supplyData.find((item) => item.currency_label === "SAL")?.amount || 0;
                 const rawBurnt = supplyData.find((item) => item.currency_label === "BURN")?.amount || 0;
 
-                circulatingSupply = rawSupply / 1e8; // Convert to human-readable value
+                circulatingSupply = rawSupply / 1e8;
                 const burnt = rawBurnt / 1e8;
 
                 document.getElementById("supply").textContent = `${circulatingSupply.toFixed(2)} SAL`;
@@ -151,7 +179,7 @@
                     liveCoinWatchUrl,
                     {
                         currency: "USD",
-                        code: "__SAL", // Replace with Salvium code if needed
+                        code: "__SAL",
                         meta: true,
                     },
                     {
