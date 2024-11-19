@@ -78,8 +78,9 @@
     </div>
 
     <script>
-        const apiUrl = "https://seed01.salvium.io:19081/json_rpc"; // Use HTTPS
-        const liveCoinWatchUrl = "https://cors-anywhere.herokuapp.com/https://api.livecoinwatch.com/coins/single"; // Use a proxy
+        // Use CORS proxy for testing
+        const apiUrl = "https://cors-anywhere.herokuapp.com/https://seed01.salvium.io:19081/json_rpc";
+        const liveCoinWatchUrl = "https://cors-anywhere.herokuapp.com/https://api.livecoinwatch.com/coins/single";
         const liveCoinWatchApiKey = "b6807d61-488c-4ee3-a35e-5c08a12d314c";
 
         let circulatingSupply = 0;
@@ -114,6 +115,8 @@
                 }
             } catch (error) {
                 console.error("Error fetching node info:", error);
+                document.getElementById("blockHeight").textContent = "Error";
+                document.getElementById("networkHash").textContent = "Error";
             }
         }
 
