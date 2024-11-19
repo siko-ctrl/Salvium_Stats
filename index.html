@@ -6,20 +6,12 @@
     <title>Salvium Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <link
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-        rel="stylesheet"
-    />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; object-src 'none';">
     <style>
         body {
             font-family: "Arial", sans-serif;
             background-color: #1a1a1a;
             color: #ffffff;
-        }
-        .sidebar {
-            background-color: #000000;
-            padding: 20px;
-            height: auto;
         }
         .content {
             padding: 20px;
@@ -35,51 +27,29 @@
         }
     </style>
 </head>
-<body class="flex flex-col md:flex-row">
-    <div class="sidebar w-full md:w-auto">
-        <div class="flex flex-col items-center">
-            <img src="./Salvium-logo_REV.png" alt="Salvium Logo" class="w-32 md:w-40 mb-4" />
-            <div class="menu-item flex items-center mb-4"><i class="fas fa-bars pr-2"></i> Menu</div>
-            <div class="menu-item flex items-center mb-4"><i class="fas fa-chart-line pr-2"></i> Charts</div>
-            <div class="menu-item flex items-center mb-4"><i class="fas fa-calculator pr-2"></i> Calculator</div>
-        </div>
+<body class="content">
+    <div class="card">
+        <p>Current Salvium Price</p>
+        <h2 id="price">Loading...</h2>
+        <p>Market Cap</p>
+        <h2 id="marketCap">Loading...</h2>
     </div>
-    <div class="content flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="card">
-            <p>Current Salvium Price</p>
-            <h2 class="text-2xl" id="price">Loading...</h2>
-            <p>Market Cap</p>
-            <h2 class="text-2xl" id="marketCap">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Supply</p>
-            <h2 class="text-2xl" id="supply">Loading...</h2>
-            <p>Coins Burnt (last 30 days)</p>
-            <h2 class="text-2xl" id="burnt">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Block Height</p>
-            <h2 class="text-2xl" id="blockHeight">Loading...</h2>
-            <p>Network Hashrate</p>
-            <h2 class="text-2xl" id="networkHash">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Total Yield</p>
-            <h2 class="text-2xl" id="totalYield">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Average Yield Rate</p>
-            <h2 class="text-2xl" id="averageYieldRate">Loading...</h2>
-        </div>
-        <div class="card">
-            <p>Yield Distribution</p>
-            <ul id="yieldDistribution" class="list-disc pl-5">Loading...</ul>
-        </div>
+    <div class="card">
+        <p>Block Height</p>
+        <h2 id="blockHeight">Loading...</h2>
+        <p>Network Hashrate</p>
+        <h2 id="networkHash">Loading...</h2>
+    </div>
+    <div class="card">
+        <p>Supply</p>
+        <h2 id="supply">Loading...</h2>
+        <p>Coins Burnt (last 30 days)</p>
+        <h2 id="burnt">Loading...</h2>
     </div>
 
     <script>
-        const apiUrl = "https://cors-anywhere.herokuapp.com/https://seed01.salvium.io:19081/json_rpc"; // CORS proxy for testing
-        const liveCoinWatchUrl = "https://cors-anywhere.herokuapp.com/https://api.livecoinwatch.com/coins/single";
+        const apiUrl = "https://seed01.salvium.io:19081/json_rpc"; // Test direct API without proxy
+        const liveCoinWatchUrl = "https://api.livecoinwatch.com/coins/single"; // Test direct API without proxy
         const liveCoinWatchApiKey = "b6807d61-488c-4ee3-a35e-5c08a12d314c";
 
         let circulatingSupply = 0;
@@ -105,13 +75,8 @@
                 const data = response.data.result;
 
                 document.getElementById("blockHeight").textContent = data.height || "N/A";
-
-                if (data.difficulty && data.target) {
-                    const hashrate = (data.difficulty / data.target) / 1e6;
-                    document.getElementById("networkHash").textContent = `${hashrate.toFixed(2)} MH/s`;
-                } else {
-                    document.getElementById("networkHash").textContent = "No Data";
-                }
+                const hashrate = (data.difficulty / data.target) / 1e6;
+                document.getElementById("networkHash").textContent = `${hashrate.toFixed(2)} MH/s`;
             } catch (error) {
                 console.error("Error fetching node info:", error);
                 document.getElementById("blockHeight").textContent = "Error";
@@ -132,13 +97,12 @@
                 const salSupply = supplyData.find((item) => item.currency_label === "SAL")?.amount || 0;
                 const burntCoins = supplyData.find((item) => item.currency_label === "BURN")?.amount || 0;
 
-                const circulatingSupply = salSupply / 1e8;
+                circulatingSupply = salSupply / 1e8;
                 const burntAmount = burntCoins / 1e8;
 
                 document.getElementById("supply").textContent = `${circulatingSupply.toFixed(2)} SAL`;
                 document.getElementById("burnt").textContent = `${burntAmount.toFixed(2)} SAL`;
-
-                window.circulatingSupply = circulatingSupply;
+                calculateMarketCap();
             } catch (error) {
                 console.error("Error fetching supply info:", error);
                 document.getElementById("supply").textContent = "Error";
@@ -152,7 +116,7 @@
                     liveCoinWatchUrl,
                     {
                         currency: "USD",
-                        code: "__SAL",
+                        code: "__SAL", // Replace with Salvium code if needed
                         meta: true,
                     },
                     {
@@ -168,8 +132,9 @@
                 if (data && data.rate) {
                     price = data.rate;
                     document.getElementById("price").textContent = `$${data.rate.toFixed(4)}`;
+                } else {
+                    throw new Error("Price data missing.");
                 }
-
                 calculateMarketCap();
             } catch (error) {
                 console.error("Error fetching price info:", error);
@@ -178,55 +143,15 @@
             }
         }
 
-        async function fetchYieldInfo() {
-            try {
-                const response = await axios.post(apiUrl, {
-                    jsonrpc: "2.0",
-                    id: "0",
-                    method: "get_yield_info",
-                });
-
-                const yieldData = response.data.result;
-
-                if (!yieldData || yieldData.status !== "OK") {
-                    throw new Error("Invalid or missing yield data in the API response.");
-                }
-
-                document.getElementById("totalYield").textContent = `${(yieldData.total_yield / 1e8).toFixed(2)} SAL`;
-
-                const averageYieldRate = yieldData.yield_per_stake / 100;
-                document.getElementById("averageYieldRate").textContent = `${averageYieldRate.toFixed(2)}%`;
-
-                const distributionList = document.getElementById("yieldDistribution");
-                distributionList.innerHTML = "";
-                if (yieldData.yield_distribution && yieldData.yield_distribution.length > 0) {
-                    yieldData.yield_distribution.forEach((item) => {
-                        const li = document.createElement("li");
-                        li.textContent = `${item.asset_type}: ${(item.yield_amount / 1e8).toFixed(2)} SAL`;
-                        distributionList.appendChild(li);
-                    });
-                } else {
-                    distributionList.innerHTML = "<li>No distribution data available.</li>";
-                }
-            } catch (error) {
-                console.error("Error fetching yield info:", error);
-                document.getElementById("totalYield").textContent = "Error";
-                document.getElementById("averageYieldRate").textContent = "Error";
-                document.getElementById("yieldDistribution").innerHTML = "<li>Error</li>";
-            }
-        }
-
         document.addEventListener("DOMContentLoaded", () => {
             fetchNodeInfo();
             fetchSupplyInfo();
             fetchPriceInfo();
-            fetchYieldInfo();
 
             setInterval(() => {
                 fetchNodeInfo();
                 fetchSupplyInfo();
                 fetchPriceInfo();
-                fetchYieldInfo();
             }, 60000);
         });
     </script>
