@@ -78,8 +78,7 @@
     </div>
 
     <script>
-        // Use CORS proxy for testing
-        const apiUrl = "https://cors-anywhere.herokuapp.com/https://seed01.salvium.io:19081/json_rpc";
+        const apiUrl = "https://cors-anywhere.herokuapp.com/https://seed01.salvium.io:19081/json_rpc"; // CORS proxy for testing
         const liveCoinWatchUrl = "https://cors-anywhere.herokuapp.com/https://api.livecoinwatch.com/coins/single";
         const liveCoinWatchApiKey = "b6807d61-488c-4ee3-a35e-5c08a12d314c";
 
@@ -179,15 +178,55 @@
             }
         }
 
+        async function fetchYieldInfo() {
+            try {
+                const response = await axios.post(apiUrl, {
+                    jsonrpc: "2.0",
+                    id: "0",
+                    method: "get_yield_info",
+                });
+
+                const yieldData = response.data.result;
+
+                if (!yieldData || yieldData.status !== "OK") {
+                    throw new Error("Invalid or missing yield data in the API response.");
+                }
+
+                document.getElementById("totalYield").textContent = `${(yieldData.total_yield / 1e8).toFixed(2)} SAL`;
+
+                const averageYieldRate = yieldData.yield_per_stake / 100;
+                document.getElementById("averageYieldRate").textContent = `${averageYieldRate.toFixed(2)}%`;
+
+                const distributionList = document.getElementById("yieldDistribution");
+                distributionList.innerHTML = "";
+                if (yieldData.yield_distribution && yieldData.yield_distribution.length > 0) {
+                    yieldData.yield_distribution.forEach((item) => {
+                        const li = document.createElement("li");
+                        li.textContent = `${item.asset_type}: ${(item.yield_amount / 1e8).toFixed(2)} SAL`;
+                        distributionList.appendChild(li);
+                    });
+                } else {
+                    distributionList.innerHTML = "<li>No distribution data available.</li>";
+                }
+            } catch (error) {
+                console.error("Error fetching yield info:", error);
+                document.getElementById("totalYield").textContent = "Error";
+                document.getElementById("averageYieldRate").textContent = "Error";
+                document.getElementById("yieldDistribution").innerHTML = "<li>Error</li>";
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             fetchNodeInfo();
             fetchSupplyInfo();
             fetchPriceInfo();
+            fetchYieldInfo();
 
             setInterval(() => {
                 fetchNodeInfo();
                 fetchSupplyInfo();
                 fetchPriceInfo();
+                fetchYieldInfo();
             }, 60000);
         });
     </script>
